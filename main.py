@@ -1,10 +1,7 @@
 import sys
-import os
 import numpy as np
 import cv2
 from scipy.optimize import linear_sum_assignment
-from munkres import Munkres, print_matrix
-
 
 # read data from to file to list where the structure is [imgName, numberOfBoxes, [boundingBoxesData]] 
 # -> the last element of the list are the lists of Bboxes features (x,y,w,h) ex. ['c6s1_087551.jpg', 2, [[197, 55, 32, 130], [55, 111, 38, 135]]]
@@ -36,6 +33,43 @@ def getFramesDataToList(boundingBoxesInfoFileName):
                 #convert data to int - so it could be compatible with opencv img data
                 boxDataIntList = [ int(float(x)) for x in boxDataStringList ]
                 boxesData.append(boxDataIntList)
+            
+            frameData.append(boxesData)
+
+            allFramesData.append(frameData)
+
+        # sort data by image name
+        allFramesData = sorted(allFramesData, key=lambda x: x[0])
+
+        return allFramesData
+
+def getCorrectOutput(correctOutPutFileName):
+    #initialize list of data from all frames
+    allFramesData = []
+    #open the file with informations about bBoxes in read mode
+    with open(correctOutPutFileName, 'r') as fh:
+        while True:
+            #init single frame data
+            frameData = []
+            #read frame file name
+            frameName = fh.readline().strip('\n') 
+            #break if frameName not found / eof
+            if not frameName:  
+                break
+
+            frameData.append(frameName)
+
+            #get number of bounding boxes on previous image
+            numberOfBoxes = int(fh.readline().strip('\n'))
+            frameData.append(numberOfBoxes)
+
+            #get data about bBoxes localisation on previous image
+            boxesData = []
+            for boxData in range(numberOfBoxes):
+                boxLine = fh.readline().strip('\n')
+                boxDataStringList = boxLine.split(" ")
+                #convert data to int - so it could be compatible with opencv img data
+                boxesData.append(boxDataStringList[0])
             
             frameData.append(boxesData)
 
@@ -78,25 +112,32 @@ RANGES = H_RANGES + S_RANGES
 CHANNELS = [0, 1]
 
 #define new object probability as constant
-NEW_OBJECT_PROBABILITY = 0.48
+NEW_OBJECT_PROBABILITY = 0.40
 
 
 def createBipartiteGraphMatrix(numberOfBboxPreviousFrame, numberOfBboxCurrentFrame, previousBboxImages, currentBboxImages):
 
-    matrix = np.ones((numberOfBboxCurrentFrame, previousBboxNum + numberOfBboxCurrentFrame))
+    # init the matrix so its columns are objects previous frame, and rows are object from current frame
+    # we need to extend the matrix columns by number of objects on current frame 
+    # - becous every object on current frame may appear for the first time
+    matrix = np.ones((numberOfBboxCurrentFrame, numberOfBboxPreviousFrame + numberOfBboxCurrentFrame))
+
+    #init matrix so every element will have probability of the new object
     matrix = matrix * NEW_OBJECT_PROBABILITY
 
+    # object similarity is calculated based on image hue and saturation histogram correlation
     for indexPrevious, bBoxImgPrevious in enumerate(previousBboxImgs):
 
         histprevious = cv2.calcHist([bBoxImgPrevious], CHANNELS, None, HISTOGRAM_SIZE, RANGES, accumulate=False)
         cv2.normalize(histprevious, histprevious, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
 
         for indexCurrent, bBoxImgCurrent in enumerate(currentBboxImgs):
-
             histcurrent = cv2.calcHist([bBoxImgCurrent], CHANNELS, None, HISTOGRAM_SIZE, RANGES, accumulate=False)
             cv2.normalize(histcurrent, histcurrent, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
 
             score = cv2.compareHist(histprevious, histcurrent, 0)
+
+            # fill the matrix with similarity score of corresponding objects
             matrix[indexCurrent, indexPrevious] = score
 
     return matrix
@@ -107,21 +148,41 @@ if __name__ == '__main__':
     dataDirectory = sys.argv[1]
     boundingBoxesfileName = dataDirectory + '/bboxes.txt'
 
+    # TODO REMOVE AFTER CHECK /////////////////////////////////////////////////
+    counter = 0
+    correctOutputfileName = dataDirectory + '/bboxes_gt.txt'
+    correctOutputData = getCorrectOutput(correctOutputfileName)
+    # TODO ////////////////////////////////////////////////////////////////////
+
+
     framesData = getFramesDataToList(boundingBoxesfileName)
     firstFrame = framesData[0]
     firstFrameBboxNum = firstFrame[1]
 
-    #for first image every Bbox will be "new"
+    #for first image every Bbox will be "new" -> so its index is -1
     outputStringFirstFrame = ""
     for bboxInd in range(firstFrameBboxNum):
         outputStringFirstFrame += "-1"
     
+    outputStringFirstFrame = outputStringFirstFrame.rstrip()
     print(outputStringFirstFrame)
 
-
+    totalFrames = 0
     #start processing for all the images -> main loop of the code
     for frameIndex in range(len(framesData) - 1):
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
+
+        # TODO REMOVE AFTER CHECKING ////////////////////////////////////
+        outputFrame = correctOutputData[frameIndex + 1]
+        correctOutputStringList = outputFrame[2]
+        correctOutputString = ""
+        for index in correctOutputStringList:
+            correctOutputString+= index + " "
+
+        correctOutputString = correctOutputString.rstrip()
+        # ///////////////////////////////////////////////////////////////
+
+
         # load previous frame data
         previousFrame = framesData[frameIndex]
         previousImg = cv2.imread('data/frames/' + previousFrame[0])
@@ -141,12 +202,17 @@ if __name__ == '__main__':
         currentBboxImgs = getBoundingBoxImagesHSV(currentImg, currentBboxes)
 
         #crop the BboxImages so that it does not take to the background into calculation
+        croppedPreviousImgs = []
         for bBoxImg in previousBboxImgs:
-            bBoxImg = cropImageByFraction(bBoxImg, 1/7, 1/7)
+            croppedPreviousImgs.append(cropImageByFraction(bBoxImg, 1/4, 1/3.5))
         
-        for bboxImg in currentBboxImgs:
-            bboxImg = cropImageByFraction(bboxImg, 1/7, 1/7)
+        previousBboxImgs = croppedPreviousImgs
 
+        croppedCurrentImgs = []
+        for bboxImg in currentBboxImgs:
+            croppedCurrentImgs.append(cropImageByFraction(bboxImg, 1/4, 1/3.5))
+
+        currentBboxImgs = croppedCurrentImgs
 
         # displayBoxes
         # for index, img in enumerate(previousBboxImgs):
@@ -155,17 +221,18 @@ if __name__ == '__main__':
         # for index, img in enumerate(currentBboxImgs):
         #     cv2.imshow('current' + str(index), cv2.cvtColor(img, cv2.COLOR_HSV2BGR))
 
-        print("@@@@@@@@@@@@@@@@@@\n")
-        print(currentFrame[0])
+        # print("@@@@@@@@@@@@@@@@@@\n")
+        # print(currentFrame[0])
 
         # declare probability matrix (that will be representing the bipartite graph) 
-        # where rows are current frame objects and columns are previous frame objects
+        # where rows are current frame objects and columns are previous frame objects -> the elements are the probability that
+        # object x from previous frame is the same object as object y on current frame 
         bipartiteGraphMatchingMatrix = createBipartiteGraphMatrix(previousBboxNum, currentBboxNum, previousBboxImgs, currentBboxImgs)
         
                 # print("previous" + str(indexprevious) + " to current"+str(indexcurrent) +": ", score)
 
-        print("-----------------")
-        print("MATRIX: \n", bipartiteGraphMatchingMatrix)
+        # print("-----------------")
+        # print("MATRIX: \n", bipartiteGraphMatchingMatrix)
 
         # get optimal solution to find best boxes matches in bipartite graph using Hungarian Method
         rowIndexes, colIndexes = linear_sum_assignment(bipartiteGraphMatchingMatrix, maximize=True)
@@ -188,8 +255,20 @@ if __name__ == '__main__':
             outputString += str(index) + " "
 
         #print using rstrip to eliminate spaces at the end of string
-        print(outputString.rstrip())
+        outputString = outputString.rstrip()
+        print(outputString)
+        print(correctOutputString)
+
+        if outputString == correctOutputString:
+            print("CORRECT!!")
+            counter+=1
+        
+        totalFrames += 1
 
         # key = ord(' ')
-        # while (key != ord('x')):
+        # while (key != ord('d')):
         #     key = cv2.waitKey(10)
+
+
+    print("TOTAL SCORE: ", ((counter+1)/(totalFrames+1)) * 100)
+
