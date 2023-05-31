@@ -114,7 +114,6 @@ CHANNELS = [0, 1]
 #define new object probability as constant
 NEW_OBJECT_PROBABILITY = 0.40
 
-
 def createBipartiteGraphMatrix(numberOfBboxPreviousFrame, numberOfBboxCurrentFrame, previousBboxImages, currentBboxImages):
 
     # init the matrix so its columns are objects previous frame, and rows are object from current frame
@@ -240,9 +239,10 @@ if __name__ == '__main__':
         # get indexes of the bounding boxes
         bBoxIndexes = []
         for rowIndex, colIndex in zip(rowIndexes, colIndexes):
-            #if element of the matrix (chosen as an expression of the solution) equals the const probability of new object 
+            #if index of responding previous boundingBox pointing to "new" objects - its pointing to the extended row ow 
+            # matrix - greater or equal number of number of bounding boxes on previous frame
             # -> treat as a new object so index is -1
-            if (bipartiteGraphMatchingMatrix[rowIndex, colIndex]== NEW_OBJECT_PROBABILITY):
+            if (colIndex >= previousBboxNum):
                 bBoxIndexes.append(-1)
             else:
                 # if element of the matrix differs from probability of new object -> the index of current bBox will be the index 

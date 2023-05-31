@@ -15,22 +15,23 @@ W analizowanym przypadku każdy z BoundingBoxów pojawiających się w klatce *n
     <img width="33%" src=https://github.com/Krawus/SIwR-pedestrian-tracking/blob/main/readmeFiles/graph2.png> 
 </p>
 
-Tak zdefiniowany graf pozwala na zdefiniowanie tabeli, w której wiersz reprezentuje indeks BoundingBoxa na aktualnej klatce *n*-tej, natomiast kolumna reprezentuje indeks BoundingBoxa z klatki poprzetniej *n-1*-tej.
-
-<p style="text-align: center;">|   |  0  |   1  |   2  | new | new | new |
-|---|:---:|:----:|:----:|:---:|:---:|-----|
-| 0 | 0.9 | 0.2  | 0.22 | 0.4 | 0.4 | 0.4 |
-| 1 | 0.8 | 0.5  | 0.32 | 0.4 | 0.4 | 0.4 |
-| 2 | 0.7 | 0.65 | 0.17 | 0.4 | 0.4 | 0.4 |
-</p>
+Tak zdefiniowany graf pozwala na zdefiniowanie tabeli, w której wiersz reprezentuje indeks BoundingBoxa na aktualnej klatce *n*-tej, natomiast kolumna reprezentuje indeks BoundingBoxa z klatki poprzetniej *n-1*-tej. Każdy BoundingBox posiada jednakowe prawdopodobieństwo pojawienia się na ekranie po raz pierwszy.
+(poniższa tabela została uzupełniona przykładowymi danymi)
+<center>
 
 |   |  0  |   1  |   2  | new | new | new |
 |---|:---:|:----:|:----:|:---:|:---:|-----|
 | 0 | 0.9 | 0.2  | 0.22 | 0.4 | 0.4 | 0.4 |
 | 1 | 0.8 | 0.5  | 0.32 | 0.4 | 0.4 | 0.4 |
 | 2 | 0.7 | 0.65 | 0.17 | 0.4 | 0.4 | 0.4 |
+</center>
 
+Tak skonstruowana tabela pozwala odczytac przykładowo prawdopodobieństwo iż przechodzień znajdujący się aktualnie w BoundingBoxie o indeksie 0 jest tą samą osobą, która została wykryta w BoundingBoxie o indeksie  1 na poprzedniej klatce (w tym przypadku prawdopodobieństwo wynosi 0.2).  
+Aby dokonac prawidłowego przypisania indeksów aktualnych BoundingBoxów należy dla każdego obiektu znaleźć największe prawdopodobieństwo.  
+Aby doszło do dwukrotnego przypisania tego samego indeksu danemu boundingBoxowi oraz aby rozwiązanie nie było dobierane w sposób zachłanny wykorzystano metrykę, znajdującą optymalne rozwiązanie gwarantujące największą sumę prawdopodobieństw BoundingBoxów - *Hungarian algorithm https://en.wikipedia.org/wiki/Hungarian_algorithm*.
+  
 
-
-
-
+## Prezentowane rozwiązanie
+W prezentowanym rozwiązaniu zastępuje wczytanie danych do analizy. Na początku wszystkim znalezionym na pierwszej klatce BoundingBoxom przypisane zostają indeksy -1. Następnie na kolejnych parach sąsiadujących ze sobą klatek dokonywane jest przetwarzanie. Wycianane i przechowywane są fragmenty obrazu odpowiadające kolejnym BoundingBoxom, a następnie konwertowane do przestrzeni barw HSV - na podstawie odpowiednich kanałów przesteni HSV obrazy będą ze sobą porównywane. Następnie następuje przycięcie obrazów reprezentujących BoundingBoxy o odpowiedni ułamek w osi X i osi Y - aby nie brać pod uwagę tła i zbędnych elementów otoczenia, a jedynie bardziej charakterystyczną przestrzeń BoundingBoxa.  
+Kolejno zostaje utworzona macierz reprezentująca kolejne przejcia w grafie *Bipartite Graph*. Macierz ta jest o wymiarze *(liczba BoundingBox w klatce aktualnej x liczba BoundingBox w klatce poprzedniej + liczbaBouningBox w klatce aktualnej)*, ponieważ każdy przechodzień z aktualnej klatki może pojawić się po raz pierwszy. Macierz ta uzupełniana jest odpowiednimi wartościami reprezentującymi podobieństwo odpowiadających sobie obrazów w BoundingBoxach. Jako metrykę podobieństwa przyjęto korelację pomiędzy histogramami poszczególnych obrazów w przestrzeni H(hue) oraz S(saturation).
+Finalnie odpowiednie indeksy zostały przypisane BoundingBoxom na podstawie tabeli, dzieki zastosowaniu opisywanego wcześniej *Hungarian algorithm*. W przypadku gry prawdopodobieństwo przypisania danego indeksu odpowiadało identyfikacji BoundingBoxa jako nowego - przypisywano wartość -1.
