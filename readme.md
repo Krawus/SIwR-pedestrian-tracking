@@ -5,7 +5,7 @@ Głównym celem jest określenie którym BoundingBox z poprzedniej klatki odpowi
 Każdy BoundingBox posiada przypisaną liczbęm, oznaczającą indeks BoundingBoxa z poprzedniej klatki -> przyjmuje opdowiednio -1 w przypadku gdy np. przechodzień dopiero pojawia się na ekranie.
 ## Metodyka
 Główną strukturą pozwalającą na realizacje zadania jest *Bipartite Graph* (graf dwudzielny), którego węzły dzielimy na dwa rozłączne zbiory - odpowiednio BoundingBoxy z klatki poprzedniej i BoundingBoxy z aktualnej klatki kamery - w taki sposób aby krawędzie nie łączyły węzłów nalezących do tego samego zbioru. Przedstawiony poniżej został przypadek w którym zarówno w poprzedniej jak i aktualnej klatce zostały wykryte po 3 BoundingBoxy.  
-<p align="center" width="100%">
+<p align="center" width="70%">
     <img width="33%" src=https://github.com/Krawus/SIwR-pedestrian-tracking/blob/main/readmeFiles/graph.png> 
 </p>
 
