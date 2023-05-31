@@ -43,6 +43,8 @@ def getFramesDataToList(boundingBoxesInfoFileName):
 
         return allFramesData
 
+
+# TODO CLEAR /////////////////////////////////////////////////////
 def getCorrectOutput(correctOutPutFileName):
     #initialize list of data from all frames
     allFramesData = []
@@ -79,7 +81,7 @@ def getCorrectOutput(correctOutPutFileName):
         allFramesData = sorted(allFramesData, key=lambda x: x[0])
 
         return allFramesData
-
+# /////////////////////////////////////////////////////////////////////////////////////////////////
 
 def getBoundingBoxImagesHSV(image, bBoxesCoordinates):
     bBoxImages = []
@@ -148,11 +150,11 @@ if __name__ == '__main__':
     boundingBoxesfileName = dataDirectory + '/bboxes.txt'
 
     # TODO REMOVE AFTER CHECK /////////////////////////////////////////////////
-    counter = 0
+    totalPredictions = 0
+    correctPredictions = 0
     correctOutputfileName = dataDirectory + '/bboxes_gt.txt'
     correctOutputData = getCorrectOutput(correctOutputfileName)
     # TODO ////////////////////////////////////////////////////////////////////
-
 
     framesData = getFramesDataToList(boundingBoxesfileName)
     firstFrame = framesData[0]
@@ -166,7 +168,6 @@ if __name__ == '__main__':
     outputStringFirstFrame = outputStringFirstFrame.rstrip()
     print(outputStringFirstFrame)
 
-    totalFrames = 0
     #start processing for all the images -> main loop of the code
     for frameIndex in range(len(framesData) - 1):
         # cv2.destroyAllWindows()
@@ -254,21 +255,22 @@ if __name__ == '__main__':
         for index in bBoxIndexes:
             outputString += str(index) + " "
 
+
+        # TODO DELETE THIS /////////////////////////////////////////////////////////////////////
+        for predIndex, correctIndex in zip(bBoxIndexes, correctOutputStringList):
+            totalPredictions+=1
+            if predIndex == int(correctIndex):
+                correctPredictions+=1
+        # //////////////////////////////////////////////////////////////////////////////////////
         #print using rstrip to eliminate spaces at the end of string
         outputString = outputString.rstrip()
         print(outputString)
-        print(correctOutputString)
-
-        if outputString == correctOutputString:
-            print("CORRECT!!")
-            counter+=1
-        
-        totalFrames += 1
+        # print(correctOutputString)
 
         # key = ord(' ')
         # while (key != ord('d')):
         #     key = cv2.waitKey(10)
 
 
-    print("TOTAL SCORE: ", ((counter+1)/(totalFrames+1)) * 100)
+    print("TOTAL SCORE: ", ((correctPredictions)/(totalPredictions)) * 100)
 
