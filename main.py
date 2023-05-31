@@ -167,26 +167,29 @@ if __name__ == '__main__':
         print("-----------------")
         print("MATRIX: \n", bipartiteGraphMatchingMatrix)
 
+        # get optimal solution to find best boxes matches in bipartite graph using Hungarian Method
         rowIndexes, colIndexes = linear_sum_assignment(bipartiteGraphMatchingMatrix, maximize=True)
 
+        # get indexes of the bounding boxes
         bBoxIndexes = []
         for rowIndex, colIndex in zip(rowIndexes, colIndexes):
-            if (bipartiteGraphMatchingMatrix[rowIndex, colIndex]== 0.48):
+            #if element of the matrix (chosen as an expression of the solution) equals the const probability of new object 
+            # -> treat as a new object so index is -1
+            if (bipartiteGraphMatchingMatrix[rowIndex, colIndex]== NEW_OBJECT_PROBABILITY):
                 bBoxIndexes.append(-1)
             else:
+                # if element of the matrix differs from probability of new object -> the index of current bBox will be the index 
+                # of corresponding object from previous frame 
                 bBoxIndexes.append(colIndex)
-                
+
+        #converting indexes of bBoxes to correct format  
         outputString = ""
         for index in bBoxIndexes:
             outputString += str(index) + " "
 
+        #print using rstrip to eliminate spaces at the end of string
         print(outputString.rstrip())
 
         # key = ord(' ')
         # while (key != ord('x')):
         #     key = cv2.waitKey(10)
-        
-
-
-
-    
