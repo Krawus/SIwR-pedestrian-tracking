@@ -6,7 +6,7 @@ Każdy BoundingBox posiada przypisaną liczbęm, oznaczającą indeks BoundingBo
 ## Metodyka
 Główną strukturą pozwalającą na realizacje zadania jest *Bipartite Graph* (graf dwudzielny), którego węzły dzielimy na dwa rozłączne zbiory - odpowiednio BoundingBoxy z klatki poprzedniej i BoundingBoxy z aktualnej klatki kamery - w taki sposób aby krawędzie nie łączyły węzłów nalezących do tego samego zbioru. Przedstawiony poniżej został przypadek w którym zarówno w poprzedniej jak i aktualnej klatce zostały wykryte po 3 BoundingBoxy.  
 <p align="center">
-    <img width="30%" src=https://github.com/Krawus/SIwR-pedestrian-tracking/blob/main/readmeFiles/graph.png> 
+    <img src=https://github.com/Krawus/SIwR-pedestrian-tracking/blob/main/readmeFiles/graph.png> 
 </p>
 
 Graf ten pozwala na obliczenie prawdopodobieństwo, iż odpowiedni BoundingBox z klatki *n* odpowiada temu samemu obiektowi co odpowiedni BoundingBox z klatki *n-1*. Zatem koszty przejścia w przedstawionym grafie reprezentują prawdopodobieństwo opisywanych powyżej zdarzeń.    
