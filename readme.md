@@ -17,14 +17,18 @@ W analizowanym przypadku każdy z BoundingBoxów pojawiających się w klatce *n
 
 Tak zdefiniowany graf pozwala na zdefiniowanie tabeli, w której wiersz reprezentuje indeks BoundingBoxa na aktualnej klatce *n*-tej, natomiast kolumna reprezentuje indeks BoundingBoxa z klatki poprzetniej *n-1*-tej.
 
-<p style=
-"|   |  0  |   1  |   2  | new | new | new |
+<p style="text-align: center;">|   |  0  |   1  |   2  | new | new | new |
 |---|:---:|:----:|:----:|:---:|:---:|-----|
 | 0 | 0.9 | 0.2  | 0.22 | 0.4 | 0.4 | 0.4 |
 | 1 | 0.8 | 0.5  | 0.32 | 0.4 | 0.4 | 0.4 |
-| 2 | 0.7 | 0.65 | 0.17 | 0.4 | 0.4 | 0.4 |"
->Text with basic formatting applied</p>
+| 2 | 0.7 | 0.65 | 0.17 | 0.4 | 0.4 | 0.4 |
+</p>
 
+|   |  0  |   1  |   2  | new | new | new |
+|---|:---:|:----:|:----:|:---:|:---:|-----|
+| 0 | 0.9 | 0.2  | 0.22 | 0.4 | 0.4 | 0.4 |
+| 1 | 0.8 | 0.5  | 0.32 | 0.4 | 0.4 | 0.4 |
+| 2 | 0.7 | 0.65 | 0.17 | 0.4 | 0.4 | 0.4 |
 
 
 
