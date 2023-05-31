@@ -105,8 +105,8 @@ def cropImageByFraction(image, fractionX, fractionY):
 
 
 #define histogram constant parameters
-H_BINS = 50
-S_BINS = 60
+H_BINS = 40
+S_BINS = 55
 HISTOGRAM_SIZE = [H_BINS, S_BINS]
 H_RANGES = [0, 180]
 S_RANGES = [0, 256]
@@ -114,7 +114,7 @@ RANGES = H_RANGES + S_RANGES
 CHANNELS = [0, 1]
 
 #define new object probability as constant
-NEW_OBJECT_PROBABILITY = 0.40
+NEW_OBJECT_PROBABILITY = 0.4
 
 def createBipartiteGraphMatrix(numberOfBboxPreviousFrame, numberOfBboxCurrentFrame, previousBboxImages, currentBboxImages):
 
@@ -204,13 +204,13 @@ if __name__ == '__main__':
         #crop the BboxImages so that it does not take to the background into calculation
         croppedPreviousImgs = []
         for bBoxImg in previousBboxImgs:
-            croppedPreviousImgs.append(cropImageByFraction(bBoxImg, 1/4, 1/3.5))
+            croppedPreviousImgs.append(cropImageByFraction(bBoxImg, 1/3.2, 1/3.5))
         
         previousBboxImgs = croppedPreviousImgs
 
         croppedCurrentImgs = []
         for bboxImg in currentBboxImgs:
-            croppedCurrentImgs.append(cropImageByFraction(bboxImg, 1/4, 1/3.5))
+            croppedCurrentImgs.append(cropImageByFraction(bboxImg, 1/3.2, 1/3.5))
 
         currentBboxImgs = croppedCurrentImgs
 
