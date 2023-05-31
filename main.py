@@ -67,6 +67,40 @@ def cropImageByFraction(image, fractionX, fractionY):
     return image
 
 
+
+#define histogram constant parameters
+H_BINS = 50
+S_BINS = 60
+HISTOGRAM_SIZE = [H_BINS, S_BINS]
+H_RANGES = [0, 180]
+S_RANGES = [0, 256]
+RANGES = H_RANGES + S_RANGES
+CHANNELS = [0, 1]
+
+#define new object probability as constant
+NEW_OBJECT_PROBABILITY = 0.48
+
+
+def createBipartiteGraphMatrix(numberOfBboxPreviousFrame, numberOfBboxCurrentFrame, previousBboxImages, currentBboxImages):
+
+    matrix = np.ones((numberOfBboxCurrentFrame, previousBboxNum + numberOfBboxCurrentFrame))
+    matrix = matrix * NEW_OBJECT_PROBABILITY
+
+    for indexPrevious, bBoxImgPrevious in enumerate(previousBboxImgs):
+
+        histprevious = cv2.calcHist([bBoxImgPrevious], CHANNELS, None, HISTOGRAM_SIZE, RANGES, accumulate=False)
+        cv2.normalize(histprevious, histprevious, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+
+        for indexCurrent, bBoxImgCurrent in enumerate(currentBboxImgs):
+
+            histcurrent = cv2.calcHist([bBoxImgCurrent], CHANNELS, None, HISTOGRAM_SIZE, RANGES, accumulate=False)
+            cv2.normalize(histcurrent, histcurrent, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+
+            score = cv2.compareHist(histprevious, histcurrent, 0)
+            matrix[indexCurrent, indexPrevious] = score
+
+    return matrix
+
 if __name__ == '__main__':
 
     #get data
@@ -100,6 +134,7 @@ if __name__ == '__main__':
         currentBboxNum = currentFrame[1]
         currentBboxes = currentFrame[2]
 
+
         #get images containing only bounding boxes from both frames
         #using the HSV space to compare hue and saturation channels later
         previousBboxImgs = getBoundingBoxImagesHSV(previousImg, previousBboxes)
@@ -114,79 +149,42 @@ if __name__ == '__main__':
 
 
         # displayBoxes
-        for index, img in enumerate(previousBboxImgs):
-            cv2.imshow('previous' + str(index), cv2.cvtColor(img, cv2.COLOR_HSV2BGR))
+        # for index, img in enumerate(previousBboxImgs):
+        #     cv2.imshow('previous' + str(index), cv2.cvtColor(img, cv2.COLOR_HSV2BGR))
 
-        for index, img in enumerate(currentBboxImgs):
-            cv2.imshow('current' + str(index), cv2.cvtColor(img, cv2.COLOR_HSV2BGR))
+        # for index, img in enumerate(currentBboxImgs):
+        #     cv2.imshow('current' + str(index), cv2.cvtColor(img, cv2.COLOR_HSV2BGR))
 
-
-        #define histogram constant parameters
-        H_BINS = 50
-        S_BINS = 60
-        HISTOGRAM_SIZE = [H_BINS, S_BINS]
-        H_RANGES = [0, 180]
-        S_RANGES = [0, 256]
-        RANGES = H_RANGES + S_RANGES
-        CHANNLES = [0, 1]
-
-        #define new object probability as constant
-        NEW_OBJECT_PROBABILITY = 0.48
-
-        #declare probability matrix where rows are current frame objects and columns are previous frame objects
-        scoresMatrix = np.ones((currentBboxNum, previousBboxNum + currentBboxNum))
-        scoresMatrix = scoresMatrix * NEW_OBJECT_PROBABILITY
-
-        print("@@@@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@@@@\n")
         print(currentFrame[0])
 
-        for indexprevious, bBoxImgprevious in enumerate(previousBboxImgs):
-
-            histprevious = cv2.calcHist([bBoxImgprevious], CHANNLES, None, HISTOGRAM_SIZE, RANGES, accumulate=False)
-            cv2.normalize(histprevious, histprevious, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-
-            for indexcurrent, bBoxImgcurrent in enumerate(currentBboxImgs):
-
-                histcurrent = cv2.calcHist([bBoxImgcurrent], CHANNLES, None, HISTOGRAM_SIZE, RANGES, accumulate=False)
-                cv2.normalize(histcurrent, histcurrent, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-
-                score_x = cv2.compareHist(histprevious, histcurrent, 0)
-
-                score = score_x
-
-                scoresMatrix[indexcurrent, indexprevious] = score
-                
+        # declare probability matrix (that will be representing the bipartite graph) 
+        # where rows are current frame objects and columns are previous frame objects
+        bipartiteGraphMatchingMatrix = createBipartiteGraphMatrix(previousBboxNum, currentBboxNum, previousBboxImgs, currentBboxImgs)
+        
                 # print("previous" + str(indexprevious) + " to current"+str(indexcurrent) +": ", score)
 
         print("-----------------")
-        print("MATRIX: \n", scoresMatrix)
+        print("MATRIX: \n", bipartiteGraphMatchingMatrix)
 
-        row_ind, col_ind = linear_sum_assignment(scoresMatrix, maximize=True)
+        rowIndexes, colIndexes = linear_sum_assignment(bipartiteGraphMatchingMatrix, maximize=True)
 
         bBoxIndexes = []
-        for index in range(len(row_ind)):
-            if (scoresMatrix[row_ind[index], col_ind[index]] == 0.48):
+        for rowIndex, colIndex in zip(rowIndexes, colIndexes):
+            if (bipartiteGraphMatchingMatrix[rowIndex, colIndex]== 0.48):
                 bBoxIndexes.append(-1)
             else:
-                bBoxIndexes.append(col_ind[index])
+                bBoxIndexes.append(colIndex)
                 
-        
         outputString = ""
         for index in bBoxIndexes:
             outputString += str(index) + " "
 
         print(outputString.rstrip())
 
-
-        
-        
-
-
-        
-
-        key = ord(' ')
-        while (key != ord('x')):
-            key = cv2.waitKey(10)
+        # key = ord(' ')
+        # while (key != ord('x')):
+        #     key = cv2.waitKey(10)
         
 
 
