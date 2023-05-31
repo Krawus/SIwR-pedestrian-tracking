@@ -14,9 +14,9 @@ def getFramesDataToList(boundingBoxesInfoFileName):
             #init single frame data
             frameData = []
             #read frame file name
-            frameName = fh.readline().strip('\n') 
+            frameName = fh.readline().strip('\n')
             #break if frameName not found / eof
-            if not frameName:  
+            if not frameName:
                 break
 
             frameData.append(frameName)
@@ -127,12 +127,12 @@ def createBipartiteGraphMatrix(numberOfBboxPreviousFrame, numberOfBboxCurrentFra
     matrix = matrix * NEW_OBJECT_PROBABILITY
 
     # object similarity is calculated based on image hue and saturation histogram correlation
-    for indexPrevious, bBoxImgPrevious in enumerate(previousBboxImgs):
+    for indexPrevious, bBoxImgPrevious in enumerate(previousBboxImages):
 
         histprevious = cv2.calcHist([bBoxImgPrevious], CHANNELS, None, HISTOGRAM_SIZE, RANGES, accumulate=False)
         cv2.normalize(histprevious, histprevious, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
 
-        for indexCurrent, bBoxImgCurrent in enumerate(currentBboxImgs):
+        for indexCurrent, bBoxImgCurrent in enumerate(currentBboxImages):
             histcurrent = cv2.calcHist([bBoxImgCurrent], CHANNELS, None, HISTOGRAM_SIZE, RANGES, accumulate=False)
             cv2.normalize(histcurrent, histcurrent, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
 
@@ -182,7 +182,6 @@ if __name__ == '__main__':
         correctOutputString = correctOutputString.rstrip()
         # ///////////////////////////////////////////////////////////////
 
-
         # load previous frame data
         previousFrame = framesData[frameIndex]
         previousImg = cv2.imread('data/frames/' + previousFrame[0])
@@ -194,7 +193,6 @@ if __name__ == '__main__':
         currentImg = cv2.imread('data/frames/' + currentFrame[0])
         currentBboxNum = currentFrame[1]
         currentBboxes = currentFrame[2]
-
 
         #get images containing only bounding boxes from both frames
         #using the HSV space to compare hue and saturation channels later
