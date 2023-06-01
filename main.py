@@ -44,45 +44,6 @@ def getFramesDataToList(boundingBoxesInfoFileName):
         return allFramesData
 
 
-# TODO CLEAR /////////////////////////////////////////////////////
-def getCorrectOutput(correctOutPutFileName):
-    #initialize list of data from all frames
-    allFramesData = []
-    #open the file with informations about bBoxes in read mode
-    with open(correctOutPutFileName, 'r') as fh:
-        while True:
-            #init single frame data
-            frameData = []
-            #read frame file name
-            frameName = fh.readline().strip('\n') 
-            #break if frameName not found / eof
-            if not frameName:  
-                break
-
-            frameData.append(frameName)
-
-            #get number of bounding boxes on previous image
-            numberOfBoxes = int(fh.readline().strip('\n'))
-            frameData.append(numberOfBoxes)
-
-            #get data about bBoxes localisation on previous image
-            boxesData = []
-            for boxData in range(numberOfBoxes):
-                boxLine = fh.readline().strip('\n')
-                boxDataStringList = boxLine.split(" ")
-                #convert data to int - so it could be compatible with opencv img data
-                boxesData.append(boxDataStringList[0])
-            
-            frameData.append(boxesData)
-
-            allFramesData.append(frameData)
-
-        # sort data by image name
-        allFramesData = sorted(allFramesData, key=lambda x: x[0])
-
-        return allFramesData
-# /////////////////////////////////////////////////////////////////////////////////////////////////
-
 def getBoundingBoxImagesHSV(image, bBoxesCoordinates):
     bBoxImages = []
     for box in bBoxesCoordinates:
@@ -101,7 +62,6 @@ def cropImageByFraction(image, fractionX, fractionY):
     image = image[0+cutPixelsVertical:imgHeight-cutPixelsVertical, 0+cutPixelsHorizontal: imgWidth-cutPixelsHorizontal]
 
     return image
-
 
 
 #define histogram constant parameters
@@ -149,13 +109,6 @@ if __name__ == '__main__':
     dataDirectory = sys.argv[1]
     boundingBoxesfileName = dataDirectory + '/bboxes.txt'
 
-    # TODO REMOVE AFTER CHECK /////////////////////////////////////////////////
-    totalPredictions = 0
-    correctPredictions = 0
-    correctOutputfileName = dataDirectory + '/bboxes_gt.txt'
-    correctOutputData = getCorrectOutput(correctOutputfileName)
-    # TODO ////////////////////////////////////////////////////////////////////
-
     framesData = getFramesDataToList(boundingBoxesfileName)
     firstFrame = framesData[0]
     firstFrameBboxNum = firstFrame[1]
@@ -170,18 +123,6 @@ if __name__ == '__main__':
 
     #start processing for all the images -> main loop of the code
     for frameIndex in range(len(framesData) - 1):
-        # cv2.destroyAllWindows()
-
-        # TODO REMOVE AFTER CHECKING ////////////////////////////////////
-        outputFrame = correctOutputData[frameIndex + 1]
-        correctOutputStringList = outputFrame[2]
-        correctOutputString = ""
-        for index in correctOutputStringList:
-            correctOutputString+= index + " "
-
-        correctOutputString = correctOutputString.rstrip()
-        # ///////////////////////////////////////////////////////////////
-
         # load previous frame data
         previousFrame = framesData[frameIndex]
         previousImg = cv2.imread('data/frames/' + previousFrame[0])
@@ -212,26 +153,11 @@ if __name__ == '__main__':
 
         currentBboxImgs = croppedCurrentImgs
 
-        # displayBoxes
-        # for index, img in enumerate(previousBboxImgs):
-        #     cv2.imshow('previous' + str(index), cv2.cvtColor(img, cv2.COLOR_HSV2BGR))
-
-        # for index, img in enumerate(currentBboxImgs):
-        #     cv2.imshow('current' + str(index), cv2.cvtColor(img, cv2.COLOR_HSV2BGR))
-
-        # print("@@@@@@@@@@@@@@@@@@\n")
-        # print(currentFrame[0])
-
         # declare probability matrix (that will be representing the bipartite graph) 
         # where rows are current frame objects and columns are previous frame objects -> the elements are the probability that
         # object x from previous frame is the same object as object y on current frame 
         bipartiteGraphMatchingMatrix = createBipartiteGraphMatrix(previousBboxNum, currentBboxNum, previousBboxImgs, currentBboxImgs)
         
-                # print("previous" + str(indexprevious) + " to current"+str(indexcurrent) +": ", score)
-
-        # print("-----------------")
-        # print("MATRIX: \n", bipartiteGraphMatchingMatrix)
-
         # get optimal solution to find best boxes matches in bipartite graph using Hungarian Method
         rowIndexes, colIndexes = linear_sum_assignment(bipartiteGraphMatchingMatrix, maximize=True)
 
@@ -253,22 +179,7 @@ if __name__ == '__main__':
         for index in bBoxIndexes:
             outputString += str(index) + " "
 
-
-        # TODO DELETE THIS /////////////////////////////////////////////////////////////////////
-        for predIndex, correctIndex in zip(bBoxIndexes, correctOutputStringList):
-            totalPredictions+=1
-            if predIndex == int(correctIndex):
-                correctPredictions+=1
-        # //////////////////////////////////////////////////////////////////////////////////////
         #print using rstrip to eliminate spaces at the end of string
         outputString = outputString.rstrip()
         print(outputString)
-        # print(correctOutputString)
-
-        # key = ord(' ')
-        # while (key != ord('d')):
-        #     key = cv2.waitKey(10)
-
-
-    print("TOTAL SCORE: ", ((correctPredictions)/(totalPredictions)) * 100)
 
