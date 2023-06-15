@@ -39,5 +39,6 @@ Finalnie odpowiednie indeksy zostały przypisane BoundingBoxom na podstawie tabe
 
 
 ### Uruchomianie
-``` python3 main.py <pathToData>
+``` 
+python3 main.py <pathToData>
 ```
