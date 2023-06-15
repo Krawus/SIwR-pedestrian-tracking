@@ -36,3 +36,8 @@ Aby nie doszło do dwukrotnego przypisania tego samego indeksu danemu boundingBo
 W prezentowanym rozwiązaniu zastępuje wczytanie danych do analizy. Na początku wszystkim znalezionym na pierwszej klatce BoundingBoxom przypisane zostają indeksy -1. Następnie na kolejnych parach sąsiadujących ze sobą klatek dokonywane jest przetwarzanie. Wycianane i przechowywane są fragmenty obrazu odpowiadające kolejnym BoundingBoxom, a następnie konwertowane do przestrzeni barw HSV - na podstawie odpowiednich kanałów przesteni HSV obrazy będą ze sobą porównywane. Następnie następuje przycięcie obrazów reprezentujących BoundingBoxy o odpowiedni ułamek w osi X i osi Y - aby nie brać pod uwagę tła i zbędnych elementów otoczenia, a jedynie bardziej charakterystyczną przestrzeń BoundingBoxa.  
 Kolejno zostaje utworzona macierz reprezentująca kolejne przejcia w grafie *Bipartite Graph*. Macierz ta jest o wymiarze *(liczba BoundingBox w klatce aktualnej x liczba BoundingBox w klatce poprzedniej + liczbaBouningBox w klatce aktualnej)*, ponieważ każdy przechodzień z aktualnej klatki może pojawić się po raz pierwszy. Macierz ta uzupełniana jest odpowiednimi wartościami reprezentującymi podobieństwo odpowiadających sobie obrazów w BoundingBoxach. Jako metrykę podobieństwa przyjęto korelację pomiędzy histogramami poszczególnych obrazów w przestrzeni H(hue) oraz S(saturation).
 Finalnie odpowiednie indeksy zostały przypisane BoundingBoxom na podstawie tabeli, dzieki zastosowaniu opisywanego wcześniej *Hungarian algorithm*. W przypadku gry prawdopodobieństwo przypisania danego indeksu odpowiadało identyfikacji BoundingBoxa jako nowego - przypisywano wartość -1.
+
+
+### Uruchomianie
+``` python3 main.py <pathToData>
+```
