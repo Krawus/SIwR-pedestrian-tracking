@@ -125,13 +125,13 @@ if __name__ == '__main__':
     for frameIndex in range(len(framesData) - 1):
         # load previous frame data
         previousFrame = framesData[frameIndex]
-        previousImg = cv2.imread('data/frames/' + previousFrame[0])
+        previousImg = cv2.imread(dataDirectory + '/frames/' + previousFrame[0])
         previousBboxNum = previousFrame[1]
         previousBboxes = previousFrame[2]
 
         # load current frame data
         currentFrame = framesData[frameIndex+1]
-        currentImg = cv2.imread('data/frames/' + currentFrame[0])
+        currentImg = cv2.imread(dataDirectory + '/frames/' + currentFrame[0])
         currentBboxNum = currentFrame[1]
         currentBboxes = currentFrame[2]
 
